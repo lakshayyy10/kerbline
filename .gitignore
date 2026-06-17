@@ -1,0 +1,35 @@
+# dependencies
+web/node_modules/
+node_modules/
+
+# next.js build output
+web/.next/
+web/out/
+web/.vercel/
+web/next-env.d.ts
+*.tsbuildinfo
+
+# data: provided competition dataset (105MB, exceeds GitHub limits, not redistributable)
+Dataset.csv
+*.csv
+
+# hackathon brief (third-party document)
+*.pdf
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
