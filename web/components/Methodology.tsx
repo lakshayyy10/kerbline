@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import type { Meta, Hotspot } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
+import type { Meta, Hotspot, Validation } from "@/lib/types";
 
 const SEVERITY_SCALE: [string, number][] = [
   ["Parking in main road · near crossing · near signal · double parking", 5],
@@ -59,6 +59,14 @@ export default function Methodology({
   hotspots: Hotspot[];
   onClose: () => void;
 }) {
+  const [val, setVal] = useState<Validation | null>(null);
+  useEffect(() => {
+    fetch("/data/validation.json")
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setVal)
+      .catch(() => setVal(null));
+  }, []);
+
   // live worked example on the #1 cell — reconstructs the exact pipeline formula
   const example = useMemo(() => {
     const h = hotspots[0];
@@ -181,6 +189,84 @@ export default function Methodology({
                   <span className="mrow-name">Impact score</span>
                   <span className="mrow-raw" />
                   <span className="mrow-pts">{example.total.toFixed(1)}</span>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {val && (
+            <section className="mblock">
+              <div className="mtitle">Does the score hold up?</div>
+              <p className="mnote">
+                There is no flow ground truth to test against, so we can&apos;t
+                prove the score is &ldquo;correct.&rdquo; What we can show — and a
+                serious reviewer should ask for — is that it isn&apos;t arbitrary.
+                Four checks, all reproducible from the dataset alone.
+              </p>
+
+              <div className="mval">
+                <div className="mval-card">
+                  <div className="mval-q">Are the weights made up?</div>
+                  <div className="mval-num">
+                    ρ = {val.weightRobustness.spearmanMedian}
+                  </div>
+                  <p className="mval-say">
+                    We re-ran the score{" "}
+                    {val.weightRobustness.draws.toLocaleString()} times with the
+                    weights randomly shifted ±50%. The hotspot ranking barely
+                    moved (median Spearman {val.weightRobustness.spearmanMedian};{" "}
+                    {Math.round(val.weightRobustness.top20OverlapMedian * 100)}% of
+                    the top {val.weightRobustness.topK} stayed top). Even forcing
+                    equal weights keeps ρ ={" "}
+                    {val.weightRobustness.spearmanEqualWeights}. The signal drives
+                    the ranking, not the exact numbers.
+                  </p>
+                </div>
+
+                <div className="mval-card">
+                  <div className="mval-q">Is it just noise?</div>
+                  <div className="mval-num">
+                    ρ = {val.temporalStability.spearman}
+                  </div>
+                  <p className="mval-say">
+                    Split the six months in half at{" "}
+                    {val.temporalStability.splitDate} and score each independently:
+                    the rankings agree (Spearman {val.temporalStability.spearman})
+                    and{" "}
+                    {Math.round(val.temporalStability.topKOverlap * 100)}% of the
+                    top {val.temporalStability.topK} hotspots recur in both halves.
+                    Chokepoints persist — they&apos;re structural, not a blip.
+                  </p>
+                </div>
+
+                <div className="mval-card">
+                  <div className="mval-q">Does an outside signal agree?</div>
+                  <div className="mval-num">
+                    ρ = {val.convergentValidity.spearman}
+                  </div>
+                  <p className="mval-say">
+                    The number of <i>distinct</i> violation types a cell attracts
+                    is never used in the score. It still tracks impact (Spearman{" "}
+                    {val.convergentValidity.spearman}): genuine chokepoints draw
+                    varied violations. Independent support from a feature we
+                    didn&apos;t engineer in.
+                  </p>
+                </div>
+
+                <div className="mval-card">
+                  <div className="mval-q">Is targeting even viable?</div>
+                  <div className="mval-num">
+                    {Math.round(val.concentration.top5PctShare * 100)}%
+                  </div>
+                  <p className="mval-say">
+                    The worst 5% of cells hold{" "}
+                    {Math.round(val.concentration.top5PctShare * 100)}% of all
+                    violations (Gini {val.concentration.gini}); just{" "}
+                    {val.concentration.cellsForHalf} of{" "}
+                    {val.concentration.totalCells.toLocaleString()} cells cover
+                    half. That concentration is what makes a handful of roving
+                    teams worth deploying.
+                  </p>
                 </div>
               </div>
             </section>

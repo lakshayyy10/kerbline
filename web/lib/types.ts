@@ -42,3 +42,39 @@ export interface Station {
 
 // heat.json is an array of [lon, lat, weight]
 export type HeatPoint = [number, number, number];
+
+export interface Validation {
+  weightRobustness: {
+    draws: number;
+    perturbation: string;
+    spearmanMedian: number;
+    spearmanP05: number;
+    top20OverlapMedian: number;
+    top20OverlapMin: number;
+    spearmanEqualWeights: number;
+    spearmanVolumeOnly: number;
+    topK: number;
+  };
+  temporalStability: {
+    splitDate: string;
+    cellsHalf1: number;
+    cellsHalf2: number;
+    commonCells: number;
+    spearman: number;
+    topKOverlap: number;
+    topK: number;
+  };
+  convergentValidity: {
+    heldOutSignal: string;
+    spearman: number;
+    note: string;
+  };
+  concentration: {
+    gini: number;
+    top5PctShare: number;
+    top1PctShare: number;
+    cellsForHalf: number;
+    totalCells: number;
+    cellsForHalfPct: number;
+  };
+}

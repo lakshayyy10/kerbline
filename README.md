@@ -14,6 +14,8 @@ impact = 100 × ( 0.40·volume + 0.30·severity + 0.20·persistence + 0.10·junc
 
 Each factor is normalised 0–1 across all ~4,900 street cells, then weighted. The full breakdown — including a live worked example that reconstructs the city's #1 cell down to the decimal — is in the in-app **Methodology** panel.
 
+Because there is no flow ground truth to test against, the score is also **stress-tested** four ways (all dataset-only, surfaced in the app): it's robust to ±50% weight perturbation (median Spearman ρ = 0.99), stable across a temporal split (ρ = 0.80, 75% of top hotspots recur), agrees with a held-out signal it never uses (ρ = 0.66), and the problem is concentrated enough to enforce (worst 5% of cells hold ~65% of violations). See `pipeline/validate.py` and the **CONCEPT_NOTE.md**.
+
 ## What's in the app
 
 - **Operations** — a deck.gl map of every hotspot cell, coloured by impact, with a density layer, filters (beat / vehicle / minimum impact), and a **time-of-day scrubber** that animates how congestion migrates across the 24 hours.
@@ -36,6 +38,9 @@ pipeline/build_data.py   →   web/public/data/*.json   →   Next.js + deck.gl 
 ```bash
 # 1. build the data (needs Dataset.csv in the repo root — see note below)
 python pipeline/build_data.py
+
+# 1b. (optional) stress-test the score → web/public/data/validation.json
+python pipeline/validate.py
 
 # 2. run the frontend
 cd web
