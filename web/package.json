@@ -14,7 +14,7 @@
     "@deck.gl/react": "^9.1.12",
     "@deck.gl/widgets": "^9.3.4",
     "maplibre-gl": "^4.7.1",
-    "next": "15.1.6",
+    "next": "^15.5.19",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-map-gl": "^8.0.1"
