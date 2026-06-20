@@ -42,6 +42,10 @@ python pipeline/build_data.py
 # 1b. (optional) stress-test the score → web/public/data/validation.json
 python pipeline/validate.py
 
+# 1c. (optional) enrich hotspots with Mappls partner place names + face-validity
+#     needs a Mappls static key: export MAPPLS_API_KEY=...
+python pipeline/validate_external.py --top --n 50
+
 # 2. run the frontend
 cd web
 npm install

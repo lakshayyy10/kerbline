@@ -43,7 +43,29 @@ export interface Station {
 // heat.json is an array of [lon, lat, weight]
 export type HeatPoint = [number, number, number];
 
+export interface Place {
+  locality: string;
+  nearestPlace: string;
+  nearestDist: number | null;
+}
+
+// places.json: hotspot id (string) -> Place
+export type Places = Record<string, Place>;
+
 export interface Validation {
+  externalValidity?: {
+    provider: string;
+    kind: string;
+    sampledHotspots: number;
+    claim: string;
+    highlights: {
+      station: string;
+      impact: number;
+      locality: string;
+      nearestDist: number | null;
+    }[];
+    note: string;
+  };
   weightRobustness: {
     draws: number;
     perturbation: string;

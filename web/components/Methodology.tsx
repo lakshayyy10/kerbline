@@ -272,6 +272,32 @@ export default function Methodology({
             </section>
           )}
 
+          {val?.externalValidity && (
+            <section className="mblock">
+              <div className="mtitle">
+                Real-world cross-reference <span>Mappls partner data</span>
+              </div>
+              <p className="mnote">
+                The internal checks show the score is consistent. This asks a
+                different question — does it point at the <i>right places?</i> We
+                resolved the top hotspots against the official partner&apos;s map
+                (Mappls / MapmyIndia). {val.externalValidity.claim}.
+              </p>
+              <div className="mxref">
+                {val.externalValidity.highlights.slice(0, 6).map((hl, i) => (
+                  <div className="mxref-row" key={i}>
+                    <span className="mxref-imp">{hl.impact.toFixed(1)}</span>
+                    <span className="mxref-place">{hl.locality}</span>
+                    {hl.nearestDist != null && (
+                      <span className="mxref-dist">{hl.nearestDist}m</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="mnote">{val.externalValidity.note}.</p>
+            </section>
+          )}
+
           <section className="mblock">
             <div className="mtitle">Severity scale</div>
             <p className="mnote">

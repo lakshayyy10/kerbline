@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { Meta, Hotspot, Station, HeatPoint } from "@/lib/types";
+import type { Meta, Hotspot, Station, HeatPoint, Places } from "@/lib/types";
 import { buildPlan, SHIFT_LABEL, type Shift, type Team } from "@/lib/plan";
 import HotspotDetail from "@/components/HotspotDetail";
 import Methodology from "@/components/Methodology";
@@ -19,6 +19,7 @@ export default function Page() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [heat, setHeat] = useState<HeatPoint[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
+  const [places, setPlaces] = useState<Places>({});
 
   const [mode, setMode] = useState<"heat" | "points" | "deploy">("points");
   const [minImpact, setMinImpact] = useState(0);
@@ -53,6 +54,11 @@ export default function Page() {
       setHeat(ht);
       setStations(s);
     });
+    // optional enrichment (Mappls partner place names); fine if absent
+    fetch("/data/places.json")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then(setPlaces)
+      .catch(() => setPlaces({}));
   }, []);
 
   const vehicleOptions = useMemo(
@@ -497,6 +503,7 @@ export default function Page() {
               <HotspotDetail
                 h={selected}
                 rank={selectedRank > 0 ? selectedRank : 1}
+                place={places[String(selected.id)]}
                 onBack={() => setSelected(null)}
                 onMethodology={() => setShowMethod(true)}
               />

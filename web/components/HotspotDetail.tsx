@@ -1,6 +1,6 @@
 "use client";
 
-import type { Hotspot } from "@/lib/types";
+import type { Hotspot, Place } from "@/lib/types";
 import { HourSpark, BarList } from "./Sparkline";
 
 function tier(impact: number) {
@@ -13,11 +13,13 @@ function tier(impact: number) {
 export default function HotspotDetail({
   h,
   rank,
+  place,
   onBack,
   onMethodology,
 }: {
   h: Hotspot;
   rank: number;
+  place?: Place;
   onBack: () => void;
   onMethodology: () => void;
 }) {
@@ -45,6 +47,12 @@ export default function HotspotDetail({
           <span className="chip">Rank #{rank}</span>
           <span className="chip">{h.station}</span>
         </div>
+        {place?.locality && (
+          <div className="locality" title="Nearest place — Mappls partner data">
+            <span className="pin">◎</span> {place.locality}
+            <span className="locality-src">Mappls</span>
+          </div>
+        )}
       </div>
 
       <div className="section">

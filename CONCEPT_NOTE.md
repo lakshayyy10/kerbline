@@ -57,6 +57,8 @@ The fair objection to any hand-built score is "your weights are arbitrary / you'
 
 This is the difference between "here is a number" and "here is a number you can defend in a review."
 
+**A real-world cross-reference (Mappls partner data).** The four checks prove the score is *internally* consistent; one more asks whether it points at the *right places.* We resolved the top hotspots against the official partner map, **Mappls (MapmyIndia)** — a permitted partner resource — and every one lands on a recognised Bengaluru commercial/transit core: **City Market → Chickpet, Upparpet → Gandhi Nagar / Majestic, Shivajinagar → Shivaji Nagar, K.R. Pura → KR Puram** — each within ~100 m of a market or transit hub. These are the corridors a traffic officer would name unprompted; the score finds them from violations alone. (We were transparent in testing the converse too: a within-city-core POI-density correlation is only modest — Bengaluru's core is uniformly dense — so we lean on the score's recognisable *face validity* here, not an inflated coefficient.)
+
 ## 6. The product
 
 A desktop control-room web app, three screens:
@@ -70,7 +72,7 @@ A desktop control-room web app, three screens:
 **Static precompute → static frontend.** A Python/pandas pipeline crunches the dataset once into small JSON files; a Next.js + deck.gl app reads them. No live backend.
 
 ```
-Dataset.csv → pipeline/build_data.py + validate.py → web/public/data/*.json → Next.js + deck.gl
+Dataset.csv → build_data.py + validate.py (+ validate_external.py) → web/public/data/*.json → Next.js + deck.gl
 ```
 
 Consequences that matter for a demo to BTP: it is **demo-proof** (no server to fall over), **runs fully offline**, deploys anywhere (Vercel) in minutes, and loads in milliseconds. Every number on screen is reproducible from one CSV.
@@ -95,7 +97,7 @@ We'd rather present an honest proxy with its error bars visible than a confident
 
 ## 11. Compliance
 
-**Single source: the official challenge dataset.** No external feeds, no live inference, no scraped maps. Every figure in this note and in the app is reproducible offline from `Dataset.csv` via the two pipeline scripts.
+**The analytical core is the official challenge dataset, only.** Every hotspot, score, and figure is computed solely from `Dataset.csv` — no external data feeds into the analysis, in line with the rules. The one outside touch is **Mappls (MapmyIndia)**, an official hackathon partner whose API the organisers confirmed teams may use: we use it *only* to attach human-readable place names to hotspots and as the real-world cross-reference above — never as an input to the score. Remove it and every number is unchanged. Everything is reproducible offline.
 
 ---
 
