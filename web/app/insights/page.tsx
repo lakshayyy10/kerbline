@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import type { Meta, Hotspot, Station } from "@/lib/types";
 import Loader from "@/components/Loader";
 import Methodology from "@/components/Methodology";
+import TopBar from "@/components/TopBar";
 
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -66,30 +66,16 @@ export default function InsightsPage() {
 
   return (
     <div className="ins">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark">K</div>
-          <div>
-            <div className="brand-name">
-              Kerb<b>line</b>
-            </div>
-            <div className="brand-sub">Parking-Induced Congestion Intelligence</div>
+      <TopBar
+        active="insights"
+        onMethodology={() => setShowMethod(true)}
+        right={
+          <div className="partner">
+            <span className="dot" />
+            {meta.dateStart} → {meta.dateEnd} · {meta.spanDays} days
           </div>
-        </div>
-        <nav className="nav">
-          <Link className="nav-link" href="/">
-            Operations
-          </Link>
-          <span className="nav-link on">Insights</span>
-          <button className="nav-link nav-btn" onClick={() => setShowMethod(true)}>
-            Methodology
-          </button>
-        </nav>
-        <div className="partner" style={{ marginLeft: "auto" }}>
-          <span className="dot" />
-          {meta.dateStart} → {meta.dateEnd} · {meta.spanDays} days
-        </div>
-      </header>
+        }
+      />
 
       <div className="ins-scroll">
         <div className="ins-wrap">

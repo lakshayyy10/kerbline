@@ -13,22 +13,22 @@ import type { Team } from "@/lib/plan";
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-// impact (0-100) -> teal → amber → hot-red
+// impact (0-100) -> low(grey) → medium(amber) → high(coral)
 function impactColor(v: number, max: number): [number, number, number] {
   const t = Math.max(0, Math.min(1, v / (max || 1)));
   if (t < 0.5) {
-    const k = t / 0.5; // teal -> amber
+    const k = t / 0.5; // low #8A93A0 -> medium #E3B341
     return [
-      Math.round(45 + k * (255 - 45)),
-      Math.round(212 + k * (176 - 212)),
-      Math.round(191 + k * (31 - 191)),
+      Math.round(138 + k * (227 - 138)),
+      Math.round(147 + k * (179 - 147)),
+      Math.round(160 + k * (65 - 160)),
     ];
   }
-  const k = (t - 0.5) / 0.5; // amber -> hot
+  const k = (t - 0.5) / 0.5; // medium #E3B341 -> high #FF6B5E
   return [
-    Math.round(255 + k * (255 - 255)),
-    Math.round(176 + k * (61 - 176)),
-    Math.round(31 + k * (87 - 31)),
+    Math.round(227 + k * (255 - 227)),
+    Math.round(179 + k * (107 - 179)),
+    Math.round(65 + k * (94 - 65)),
   ];
 }
 
@@ -123,10 +123,10 @@ export default function MapView({
           radiusMaxPixels: 90,
           transitions: { getRadius: 450, getFillColor: 250 },
           getFillColor: (d) =>
-            d.team === activeTeam ? [255, 61, 87, 55] : [255, 176, 31, 38],
+            d.team === activeTeam ? [255, 107, 94, 55] : [122, 162, 255, 38],
           stroked: true,
           getLineColor: (d) =>
-            d.team === activeTeam ? [255, 61, 87, 220] : [255, 176, 31, 150],
+            d.team === activeTeam ? [255, 107, 94, 220] : [122, 162, 255, 160],
           getLineWidth: 2,
           lineWidthMinPixels: 1.5,
           pickable: true,
@@ -140,14 +140,14 @@ export default function MapView({
           getPosition: (d) => [d.lon, d.lat],
           getText: (d) => String(d.team),
           getSize: 15,
-          getColor: [10, 13, 18, 255],
+          getColor: [11, 13, 16, 255],
           background: true,
           getBackgroundColor: (d) =>
-            d.team === activeTeam ? [255, 61, 87, 255] : [255, 176, 31, 255],
+            d.team === activeTeam ? [255, 107, 94, 255] : [122, 162, 255, 255],
           backgroundPadding: [7, 4],
-          getBorderColor: [10, 13, 18, 255],
+          getBorderColor: [11, 13, 16, 255],
           getBorderWidth: 1.5,
-          fontWeight: 800,
+          fontWeight: 600,
           characterSet: "0123456789",
           pickable: false,
           updateTriggers: { getBackgroundColor: [activeTeam] },
@@ -165,11 +165,11 @@ export default function MapView({
           intensity: 1.1,
           threshold: 0.04,
           colorRange: [
-            [45, 212, 191, 90],
-            [74, 168, 255, 150],
-            [255, 176, 31, 200],
-            [255, 138, 61, 230],
-            [255, 61, 87, 255],
+            [122, 162, 255, 70],
+            [122, 162, 255, 140],
+            [227, 179, 65, 200],
+            [255, 107, 94, 230],
+            [255, 107, 94, 255],
           ],
         }),
       ];

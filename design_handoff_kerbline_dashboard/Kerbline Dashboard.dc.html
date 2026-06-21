@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #0B0D10; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif; }
+  ::selection { background: rgba(122,162,255,0.3); color: #fff; }
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes kb-pulse { 0% { transform: scale(0.85); opacity: 0.55; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }
+  @keyframes kb-breathe { 0%,100% { opacity: 0.9; } 50% { opacity: 1; } }
+  @keyframes kb-spring { 0% { transform: scale(0.92) translateY(8px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+  @keyframes kb-fadeup { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes kb-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes kb-drift { 0% { transform: translate(0,0); } 50% { transform: translate(-1.5%, -1%); } 100% { transform: translate(0,0); } }
+</style>
+</helmet>
+
+<div style="position:relative; width:100%; height:100vh; overflow:hidden; background:#0B0D10; color:#F5F3EE; font-family:inherit;">
+
+  <!-- ===================== MAP (full bleed beneath panels) ===================== -->
+  <div style="position:absolute; inset:0; z-index:0; background:radial-gradient(1400px 900px at 58% 42%, #161A21 0%, #0E1116 55%, #0B0D10 100%); overflow:hidden;">
+    <div style="position:absolute; inset:-4%; animation:kb-drift 34s ease-in-out infinite; background:
+      radial-gradient(620px 420px at 30% 65%, rgba(40,52,70,0.55), transparent 70%),
+      radial-gradient(720px 520px at 72% 30%, rgba(34,44,60,0.5), transparent 70%),
+      radial-gradient(420px 320px at 52% 78%, rgba(46,40,58,0.4), transparent 70%);"></div>
+    <!-- faint terrain contour roads, ultra low opacity, no grid -->
+    <div style="position:absolute; left:0; top:38%; width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.05) 30%, rgba(255,255,255,0.05) 70%, transparent);"></div>
+    <div style="position:absolute; left:46%; top:0; width:1px; height:100%; background:linear-gradient(180deg, transparent, rgba(255,255,255,0.04) 30%, rgba(255,255,255,0.04) 70%, transparent);"></div>
+    <div style="position:absolute; left:18%; top:8%; width:64%; height:60%; border:1px solid rgba(255,255,255,0.025); border-radius:46% 54% 60% 40%/52% 44% 56% 48%; transform:rotate(-8deg);"></div>
+    <!-- vignette -->
+    <div style="position:absolute; inset:0; background:radial-gradient(120% 120% at 50% 45%, transparent 55%, rgba(0,0,0,0.5) 100%);"></div>
+
+    <!-- hotspots -->
+    <sc-for list="{{ hotspots }}" as="spot" hint-placeholder-count="7">
+      <div onClick="{{ spot.onClick }}" style="{{ spot.wrapStyle }}">
+        <span style="{{ spot.pulseStyle }}"></span>
+        <span style="{{ spot.dotStyle }}"></span>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- ===================== TOP BAR ===================== -->
+  <header style="position:absolute; top:0; left:0; right:0; height:66px; z-index:30; display:flex; align-items:center; gap:24px; padding:0 22px; background:linear-gradient(180deg, rgba(11,13,16,0.86), rgba(11,13,16,0.4) 70%, transparent); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);">
+    <!-- brand -->
+    <div style="display:flex; align-items:center; gap:11px;">
+      <div style="width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:grid; place-items:center; font-weight:600; font-size:17px; color:#F5F3EE; box-shadow:0 2px 12px rgba(0,0,0,0.4);">K</div>
+      <div style="display:flex; flex-direction:column; gap:3px;">
+        <div style="font-size:16px; font-weight:600; letter-spacing:-0.01em; line-height:1;">Kerbline</div>
+        <div style="font-size:9.5px; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:rgba(245,243,238,0.36); line-height:1;">Congestion Intelligence</div>
+      </div>
+    </div>
+
+    <!-- segmented control -->
+    <div style="position:relative; display:flex; margin:0 auto; padding:4px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);">
+      <div style="position:absolute; top:4px; left:4px; bottom:4px; width:calc((100% - 8px)/3); border-radius:10px; background:rgba(255,255,255,0.1); box-shadow:0 1px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12); transition:transform .42s cubic-bezier(.34,1.4,.5,1); transform:translateX({{ pageX }});"></div>
+      <button onClick="{{ goOps }}" style="position:relative; z-index:1; border:none; background:transparent; cursor:pointer; padding:7px 20px; font-family:inherit; font-size:13px; font-weight:600; letter-spacing:-0.01em; color:{{ opsColor }}; transition:color .3s;">Operations</button>
+      <button onClick="{{ goInsights }}" style="position:relative; z-index:1; border:none; background:transparent; cursor:pointer; padding:7px 20px; font-family:inherit; font-size:13px; font-weight:600; letter-spacing:-0.01em; color:{{ insColor }}; transition:color .3s;">Insights</button>
+      <button onClick="{{ goMethod }}" style="position:relative; z-index:1; border:none; background:transparent; cursor:pointer; padding:7px 20px; font-family:inherit; font-size:13px; font-weight:600; letter-spacing:-0.01em; color:{{ metColor }}; transition:color .3s;">Methodology</button>
+    </div>
+
+    <!-- metric pills -->
+    <div style="display:flex; gap:10px; align-items:center;">
+      <div style="display:flex; align-items:baseline; gap:7px; padding:8px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:13px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);">
+        <span style="font-size:15px; font-weight:600; letter-spacing:-0.01em; font-variant-numeric:tabular-nums;">298K</span>
+        <span style="font-size:9.5px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.4);">Violations</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:7px; padding:8px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:13px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);">
+        <span style="font-size:15px; font-weight:600; letter-spacing:-0.01em; font-variant-numeric:tabular-nums;">4,912</span>
+        <span style="font-size:9.5px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.4);">Hotspots</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:7px; padding:8px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:13px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);">
+        <span style="font-size:15px; font-weight:600; letter-spacing:-0.01em; font-variant-numeric:tabular-nums;">112</span>
+        <span style="font-size:9.5px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.4);">Beats</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== OPERATIONS VIEW ===================== -->
+  <sc-if value="{{ isOps }}" hint-placeholder-val="{{ true }}">
+  <div>
+    <!-- ===== LEFT FLOATING STACK ===== -->
+    <aside style="position:absolute; left:20px; top:82px; bottom:20px; width:320px; z-index:20; display:flex; flex-direction:column; gap:14px; overflow-y:auto; padding-right:2px; animation:kb-fadeup .5s ease both;">
+
+      <!-- stat cards 2x2 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="padding:16px 16px 15px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28);">
+          <div style="font-size:34px; font-weight:600; letter-spacing:-0.025em; line-height:1; color:#F5F3EE; font-variant-numeric:tabular-nums;">312</div>
+          <div style="font-size:10.5px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-top:9px;">Active hotspots</div>
+        </div>
+        <div style="padding:16px 16px 15px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28);">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:34px; font-weight:600; letter-spacing:-0.025em; line-height:1; color:#FF6B5E; font-variant-numeric:tabular-nums;">47</span><span style="width:7px; height:7px; border-radius:50%; background:#FF6B5E; box-shadow:0 0 12px #FF6B5E;"></span></div>
+          <div style="font-size:10.5px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-top:9px;">Critical · ≥60</div>
+        </div>
+        <div style="padding:16px 16px 15px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28);">
+          <div style="font-size:34px; font-weight:600; letter-spacing:-0.025em; line-height:1; color:#F5F3EE; font-variant-numeric:tabular-nums;">298K</div>
+          <div style="font-size:10.5px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-top:9px;">Violations</div>
+        </div>
+        <div style="padding:16px 16px 15px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28);">
+          <div style="font-size:34px; font-weight:600; letter-spacing:-0.025em; line-height:1; color:#F5F3EE; font-variant-numeric:tabular-nums;">38.6</div>
+          <div style="font-size:10.5px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-top:9px;">Avg impact</div>
+        </div>
+      </div>
+
+      <!-- filters card -->
+      <div style="padding:18px 18px 20px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28);">
+        <div style="font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-bottom:16px;">Filters</div>
+
+        <!-- layer toggle chips -->
+        <div style="display:flex; gap:7px; margin-bottom:18px;">
+          <sc-for list="{{ layers }}" as="ch" hint-placeholder-count="3">
+            <button onClick="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
+          </sc-for>
+        </div>
+
+        <!-- slider -->
+        <div style="margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:11px;">
+            <span style="font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; color:rgba(245,243,238,0.55);">Minimum impact</span>
+            <span style="font-size:13px; font-weight:600; color:#7AA2FF; font-variant-numeric:tabular-nums;">{{ minImpact }}</span>
+          </div>
+          <input type="range" min="0" max="90" value="{{ minImpact }}" onInput="{{ onMin }}" style="width:100%; height:4px; -webkit-appearance:none; appearance:none; background:rgba(255,255,255,0.1); border-radius:99px; outline:none; cursor:pointer; accent-color:#7AA2FF;">
+        </div>
+
+        <!-- dropdowns -->
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <div>
+            <div style="font-size:10.5px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-bottom:7px;">Police beat</div>
+            <select style="width:100%; padding:10px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; color:#F5F3EE; font-family:inherit; font-size:13px; appearance:none; cursor:pointer;"><option>All beats</option><option>Central</option><option>East</option></select>
+          </div>
+          <div>
+            <div style="font-size:10.5px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-bottom:7px;">Vehicle type</div>
+            <select style="width:100%; padding:10px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; color:#F5F3EE; font-family:inherit; font-size:13px; appearance:none; cursor:pointer;"><option>All vehicles</option><option>Two-wheeler</option><option>Car / LMV</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- area chart card -->
+      <div style="padding:18px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28);">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+          <span style="font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(245,243,238,0.4);">Citywide rhythm</span>
+          <span style="font-size:11px; font-weight:600; color:#7AA2FF;">Peak 10:00</span>
+        </div>
+        <div style="font-size:10.5px; color:rgba(245,243,238,0.36); margin-bottom:12px;">Violations by hour of day</div>
+        <svg viewBox="0 0 280 78" style="width:100%; height:auto; display:block;">
+          <defs>
+            <linearGradient id="kbArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#7AA2FF" stop-opacity="0.34"></stop>
+              <stop offset="1" stop-color="#7AA2FF" stop-opacity="0"></stop>
+            </linearGradient>
+          </defs>
+          <path d="{{ areaPath }}" fill="url(#kbArea)"></path>
+          <path d="{{ linePath }}" fill="none" stroke="#7AA2FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <circle cx="{{ peakX }}" cy="{{ peakY }}" r="3.4" fill="#0B0D10" stroke="#7AA2FF" stroke-width="2"></circle>
+        </svg>
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:rgba(245,243,238,0.3); font-variant-numeric:tabular-nums; margin-top:4px;"><span>00h</span><span>12h</span><span>23h</span></div>
+      </div>
+    </aside>
+
+    <!-- ===== MAP OVERLAYS ===== -->
+    <!-- severity legend -->
+    <div style="position:absolute; left:360px; bottom:24px; z-index:15; display:flex; align-items:center; gap:16px; padding:11px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 8px 30px rgba(0,0,0,0.35);">
+      <span style="font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.4);">Impact</span>
+      <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#8A93A0;"></span><span style="font-size:11px; color:rgba(245,243,238,0.6);">Low</span></div>
+      <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#E3B341;"></span><span style="font-size:11px; color:rgba(245,243,238,0.6);">Medium</span></div>
+      <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#FF6B5E; box-shadow:0 0 10px rgba(255,107,94,0.6);"></span><span style="font-size:11px; color:rgba(245,243,238,0.6);">High</span></div>
+    </div>
+
+    <!-- floating time scrubber -->
+    <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:24px; z-index:15; display:flex; align-items:center; gap:14px; padding:11px 16px 11px 11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:18px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 8px 34px rgba(0,0,0,0.4);">
+      <button onClick="{{ togglePlay }}" style="{{ playStyle }}">{{ playGlyph }}</button>
+      <div style="display:flex; flex-direction:column; gap:2px;">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-size:14px; font-weight:600; color:#F5F3EE; font-variant-numeric:tabular-nums;">10:00</span><span style="font-size:10.5px; color:rgba(245,243,238,0.4); font-variant-numeric:tabular-nums;">14,201 violations · citywide peak</span></div>
+        <svg viewBox="0 0 220 20" style="width:220px; height:20px; display:block;"><path d="{{ scrubArea }}" fill="rgba(122,162,255,0.18)"></path><path d="{{ scrubLine }}" fill="none" stroke="rgba(122,162,255,0.7)" stroke-width="1.4"></path></svg>
+      </div>
+    </div>
+
+    <!-- ===== HOTSPOT DETAIL FLOATING PANEL ===== -->
+    <sc-if value="{{ spot }}" hint-placeholder-val="{{ null }}">
+      <div style="position:absolute; left:360px; top:96px; z-index:25; width:300px; padding:20px; background:rgba(20,23,29,0.72); border:1px solid rgba(255,255,255,0.1); border-radius:24px; backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); box-shadow:0 24px 70px rgba(0,0,0,0.55); animation:kb-spring .5s cubic-bezier(.34,1.4,.5,1) both;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;"><span style="{{ spot.dotMini }}"></span><span style="font-size:10.5px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:{{ spot.color }};">{{ spot.sevLabel }}</span></div>
+            <div style="font-size:19px; font-weight:600; letter-spacing:-0.01em; margin-top:7px;">{{ spot.name }}</div>
+          </div>
+          <button onClick="{{ closeSpot }}" style="flex:0 0 auto; width:28px; height:28px; border-radius:50%; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(245,243,238,0.6); cursor:pointer; font-size:15px; line-height:1; display:grid; place-items:center;">×</button>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:8px; margin:18px 0 6px;">
+          <span style="font-size:52px; font-weight:600; letter-spacing:-0.03em; line-height:1; color:#F5F3EE; font-variant-numeric:tabular-nums;">{{ spot.impact }}</span>
+          <span style="font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:rgba(245,243,238,0.4);">Impact score</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; margin-top:16px; background:rgba(255,255,255,0.06); border-radius:14px; overflow:hidden;">
+          <div style="padding:12px 13px; background:rgba(255,255,255,0.02);"><div style="font-size:16px; font-weight:600; font-variant-numeric:tabular-nums;">{{ spot.viol }}</div><div style="font-size:9px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-top:5px;">Violations</div></div>
+          <div style="padding:12px 13px; background:rgba(255,255,255,0.02);"><div style="font-size:16px; font-weight:600; font-variant-numeric:tabular-nums;">{{ spot.sev }}</div><div style="font-size:9px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-top:5px;">Severity</div></div>
+          <div style="padding:12px 13px; background:rgba(255,255,255,0.02);"><div style="font-size:16px; font-weight:600; font-variant-numeric:tabular-nums;">{{ spot.persistence }}%</div><div style="font-size:9px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:rgba(245,243,238,0.4); margin-top:5px;">Days</div></div>
+        </div>
+        <div style="font-size:12.5px; line-height:1.6; color:rgba(245,243,238,0.62); margin-top:16px;">Deploy a 2-officer enforcement window <b style="color:#F5F3EE; font-weight:600;">09:30–11:00</b> to recover an estimated <b style="color:#7AA2FF; font-weight:600;">{{ spot.recover }}</b> of peak congestion.</div>
+      </div>
+    </sc-if>
+
+    <!-- ===== RIGHT FLOATING STACK ===== -->
+    <aside style="position:absolute; right:20px; top:82px; bottom:20px; width:360px; z-index:20; display:flex; flex-direction:column; gap:14px; overflow-y:auto; padding-right:2px; animation:kb-fadeup .5s ease both;">
+      <div style="padding:18px 20px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(245,243,238,0.4);">Priority board</span>
+          <span style="font-size:11px; font-weight:600; color:#7AA2FF;">Top 5</span>
+        </div>
+        <div style="font-size:11.5px; line-height:1.55; color:rgba(245,243,238,0.4); margin-top:8px;">Ranked by impact = volume × severity × persistence × junction proximity.</div>
+      </div>
+
+      <sc-for list="{{ board }}" as="card" hint-placeholder-count="5">
+        <div onClick="{{ card.onClick }}" style="{{ card.cardStyle }}">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="font-size:13px; font-weight:600; color:rgba(245,243,238,0.32); width:14px; font-variant-numeric:tabular-nums;">{{ card.rank }}</div>
+            <!-- ring -->
+            <div style="position:relative; flex:0 0 auto; width:46px; height:46px;">
+              <svg viewBox="0 0 46 46" style="width:46px; height:46px; transform:rotate(-90deg);">
+                <circle cx="23" cy="23" r="19" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3.5"></circle>
+                <circle cx="23" cy="23" r="19" fill="none" stroke="{{ card.color }}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="{{ card.dash }}"></circle>
+              </svg>
+              <div style="position:absolute; inset:0; display:grid; place-items:center; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-0.02em;">{{ card.impact }}</div>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:center; gap:7px;"><span style="font-size:14px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ card.name }}</span><span style="{{ card.dotMini }}"></span></div>
+              <div style="font-size:11px; color:rgba(245,243,238,0.4); margin-top:3px; font-variant-numeric:tabular-nums;">{{ card.viol }} viol · {{ card.persistence }}% days</div>
+            </div>
+            <!-- sparkline -->
+            <svg viewBox="0 0 56 22" style="width:56px; height:22px; flex:0 0 auto;"><path d="{{ card.spark }}" fill="none" stroke="{{ card.color }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"></path></svg>
+          </div>
+          <sc-if value="{{ card.expanded }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.07); display:flex; flex-direction:column; gap:11px; animation:kb-fade .35s ease both;">
+              <div style="display:flex; justify-content:space-between; font-size:12px;"><span style="color:rgba(245,243,238,0.5);">Avg severity</span><span style="font-weight:600; font-variant-numeric:tabular-nums;">{{ card.sev }} / 5</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12px;"><span style="color:rgba(245,243,238,0.5);">Peak window</span><span style="font-weight:600;">09:30 – 11:00</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12px;"><span style="color:rgba(245,243,238,0.5);">Recoverable</span><span style="font-weight:600; color:#7AA2FF;">{{ card.recover }}</span></div>
+              <button style="margin-top:4px; padding:10px; border:none; border-radius:12px; background:rgba(122,162,255,0.14); color:#7AA2FF; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer;">Assign enforcement team</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </aside>
+  </div>
+  </sc-if>
+
+  <!-- ===================== INSIGHTS / METHODOLOGY (graceful minimal) ===================== -->
+  <sc-if value="{{ isAux }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; inset:66px 0 0 0; z-index:18; display:grid; place-items:center; animation:kb-fade .4s ease both;">
+      <div style="text-align:center; max-width:440px; padding:40px;">
+        <div style="font-size:13px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#7AA2FF;">{{ auxKicker }}</div>
+        <div style="font-size:30px; font-weight:600; letter-spacing:-0.02em; margin-top:14px; color:#F5F3EE;">{{ auxTitle }}</div>
+        <div style="font-size:14px; line-height:1.65; color:rgba(245,243,238,0.5); margin-top:14px;">{{ auxBody }}</div>
+        <button onClick="{{ goOps }}" style="margin-top:24px; padding:11px 22px; border:1px solid rgba(255,255,255,0.1); border-radius:13px; background:rgba(255,255,255,0.05); color:#F5F3EE; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);">← Back to Operations</button>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { page: 'ops', layer: 'hotspots', minImpact: 18, spotId: null, cardId: 1, playing: true };
+
+  // ---- smooth path builder (Catmull-Rom -> cubic bezier) ----
+  smooth(values, W, H, padX, padTop, padBot) {
+    const n = values.length;
+    const max = Math.max(...values);
+    const pts = values.map((v, i) => [
+      padX + (i / (n - 1)) * (W - padX * 2),
+      padTop + (1 - v / max) * (H - padTop - padBot)
+    ]);
+    let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || pts[i + 1];
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    return { line: d, pts, max };
+  }
+
+  spark(values) {
+    const W = 56, H = 22;
+    const s = this.smooth(values, W, H, 1, 3, 3);
+    return s.line;
+  }
+
+  renderVals() {
+    const C = { low: '#8A93A0', med: '#E3B341', high: '#FF6B5E' };
+    const fmt = n => n.toLocaleString('en-US');
+
+    // ---- hotspots ----
+    const raw = [
+      { id: 1, name: 'Shivajinagar PS', x: 52, y: 38, size: 30, sev: 4.1, impact: 87, viol: 8204, persistence: 92, tier: 'high', recover: '18%' },
+      { id: 2, name: 'Commercial Street', x: 35, y: 52, size: 26, sev: 3.8, impact: 71, viol: 7116, persistence: 88, tier: 'high', recover: '15%' },
+      { id: 3, name: 'KR Market', x: 63, y: 47, size: 23, sev: 3.5, impact: 59, viol: 6540, persistence: 79, tier: 'med', recover: '12%' },
+      { id: 4, name: 'Majestic / KSR', x: 43, y: 27, size: 20, sev: 3.2, impact: 52, viol: 5980, persistence: 74, tier: 'med', recover: '11%' },
+      { id: 5, name: 'Jayanagar 4th Blk', x: 70, y: 63, size: 17, sev: 3.0, impact: 47, viol: 5220, persistence: 70, tier: 'low', recover: '9%' },
+      { id: 6, name: 'Indiranagar 100ft', x: 24, y: 67, size: 15, sev: 2.8, impact: 41, viol: 4610, persistence: 66, tier: 'low', recover: '8%' },
+      { id: 7, name: 'Malleshwaram 8th', x: 80, y: 33, size: 14, sev: 2.6, impact: 38, viol: 4012, persistence: 61, tier: 'low', recover: '7%' },
+      { id: 8, name: 'Wilson Garden', x: 56, y: 72, size: 13, sev: 2.4, impact: 34, viol: 3640, persistence: 58, tier: 'low', recover: '6%' }
+    ];
+    const sevLabel = { low: 'Low impact', med: 'Medium impact', high: 'High impact' };
+
+    const hotspots = raw.map(h => {
+      const col = C[h.tier];
+      const sel = this.state.spotId === h.id;
+      const dim = this.state.spotId && !sel ? 0.4 : 1;
+      const sz = sel ? h.size * 1.18 : h.size;
+      return {
+        ...h,
+        color: col,
+        onClick: () => this.setState({ spotId: h.id }),
+        wrapStyle: `position:absolute; left:${h.x}%; top:${h.y}%; width:${sz}px; height:${sz}px; transform:translate(-50%,-50%); z-index:${sel ? 8 : 5}; cursor:pointer; opacity:${dim}; transition:opacity .4s, width .45s cubic-bezier(.34,1.4,.5,1), height .45s cubic-bezier(.34,1.4,.5,1);`,
+        dotStyle: `position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle at 38% 34%, ${col}, ${col}cc 55%, ${col}55); box-shadow:0 0 ${sz * (sel ? 1.4 : 0.9)}px ${col}${sel ? 'cc' : '88'}, 0 0 ${sz * 2.4}px ${col}33; border:1.5px solid ${sel ? '#F5F3EE' : 'rgba(255,255,255,0.35)'}; transition:box-shadow .45s, border-color .45s; animation:kb-breathe 3.4s ease-in-out infinite; pointer-events:none;`,
+        pulseStyle: `position:absolute; inset:0; border-radius:50%; background:${col}; opacity:0.45; animation:kb-pulse ${2.6 + h.id * 0.15}s ease-out infinite; pointer-events:none;`
+      };
+    });
+
+    const sp = raw.find(h => h.id === this.state.spotId);
+    const spot = sp ? {
+      ...sp,
+      color: C[sp.tier],
+      viol: fmt(sp.viol),
+      sevLabel: sevLabel[sp.tier],
+      dotMini: `width:8px; height:8px; border-radius:50%; display:inline-block; background:${C[sp.tier]}; box-shadow:0 0 10px ${C[sp.tier]};`
+    } : null;
+
+    // ---- board cards ----
+    const sparks = [
+      [4, 5, 6, 8, 11, 14, 16, 13, 12], [3, 4, 6, 9, 12, 15, 13, 11, 10],
+      [5, 6, 7, 8, 10, 11, 12, 10, 9], [4, 5, 6, 7, 9, 10, 9, 8, 8],
+      [3, 4, 5, 6, 7, 8, 7, 7, 6]
+    ];
+    const circ = 2 * Math.PI * 19;
+    const board = raw.slice(0, 5).map((h, i) => {
+      const col = C[h.tier];
+      const exp = this.state.cardId === h.id;
+      const len = circ * (h.impact / 100);
+      return {
+        rank: h.id, name: h.name, impact: h.impact, viol: fmt(h.viol),
+        persistence: h.persistence, sev: h.sev, recover: h.recover, color: col,
+        expanded: exp,
+        onClick: () => this.setState({ cardId: exp ? null : h.id }),
+        dash: `${len.toFixed(1)} ${circ.toFixed(1)}`,
+        spark: this.spark(sparks[i]),
+        dotMini: `width:7px; height:7px; border-radius:50%; display:inline-block; flex:0 0 auto; background:${col}; box-shadow:0 0 8px ${col};`,
+        cardStyle: `padding:16px 18px; background:${exp ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${exp ? 'rgba(122,162,255,0.3)' : 'rgba(255,255,255,0.08)'}; border-radius:22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 6px 30px rgba(0,0,0,0.28); cursor:pointer; transition:background .3s, border-color .3s;`
+      };
+    });
+
+    // ---- layer chips ----
+    const layerDefs = [{ k: 'hotspots', l: 'Hotspots' }, { k: 'density', l: 'Density' }, { k: 'deploy', l: 'Deploy' }];
+    const layers = layerDefs.map(d => {
+      const on = this.state.layer === d.k;
+      return {
+        label: d.l,
+        onClick: () => this.setState({ layer: d.k }),
+        style: `flex:1; padding:8px 6px; border:1px solid ${on ? 'rgba(122,162,255,0.4)' : 'rgba(255,255,255,0.08)'}; border-radius:11px; background:${on ? 'rgba(122,162,255,0.16)' : 'rgba(255,255,255,0.03)'}; color:${on ? '#7AA2FF' : 'rgba(245,243,238,0.6)'}; font-family:inherit; font-size:11.5px; font-weight:600; cursor:pointer; transition:all .25s;`
+      };
+    });
+
+    // ---- area chart ----
+    const hours = [14, 10, 8, 9, 12, 22, 44, 70, 88, 96, 100, 84, 70, 60, 58, 62, 70, 74, 66, 52, 40, 30, 22, 16];
+    const ch = this.smooth(hours, 280, 78, 2, 6, 6);
+    const areaPath = ch.line + ` L${(280 - 2).toFixed(1)},${72} L2,72 Z`;
+    const peakI = hours.indexOf(Math.max(...hours));
+
+    const scrubVals = hours;
+    const sc = this.smooth(scrubVals, 220, 20, 1, 3, 3);
+
+    // ---- nav ----
+    const page = this.state.page;
+    const pageX = page === 'ops' ? '0%' : page === 'insights' ? '100%' : '200%';
+    const navColor = p => page === p ? '#F5F3EE' : 'rgba(245,243,238,0.5)';
+    const aux = {
+      insights: { kicker: 'Insights', title: 'City-scale congestion narrative', body: 'A deep editorial read of where, when and why parking violations choke Bengaluru — hour-by-hour rhythms, beat leaderboards and recoverable-time modelling.' },
+      methodology: { kicker: 'Methodology', title: 'How the impact score is built', body: 'Impact = volume × severity × persistence × junction proximity, normalised 0–100. Every input is auditable down to the source citation and confidence flag.' }
+    }[page] || {};
+
+    return {
+      hotspots, spot, board, layers,
+      minImpact: this.state.minImpact,
+      onMin: e => this.setState({ minImpact: +e.target.value }),
+      closeSpot: () => this.setState({ spotId: null }),
+      linePath: ch.line, areaPath,
+      peakX: ch.pts[peakI][0].toFixed(1), peakY: ch.pts[peakI][1].toFixed(1),
+      scrubLine: sc.line, scrubArea: sc.line + ` L219,17 L1,17 Z`,
+      togglePlay: () => this.setState({ playing: !this.state.playing }),
+      playGlyph: this.state.playing ? '❚❚' : '▶',
+      playStyle: `flex:0 0 auto; width:38px; height:38px; border-radius:11px; border:1px solid ${this.state.playing ? 'rgba(122,162,255,0.4)' : 'rgba(255,255,255,0.1)'}; background:${this.state.playing ? 'rgba(122,162,255,0.16)' : 'rgba(255,255,255,0.05)'}; color:${this.state.playing ? '#7AA2FF' : 'rgba(245,243,238,0.7)'}; cursor:pointer; font-size:11px; display:grid; place-items:center; transition:all .25s;`,
+      pageX, opsColor: navColor('ops'), insColor: navColor('insights'), metColor: navColor('methodology'),
+      goOps: () => this.setState({ page: 'ops' }),
+      goInsights: () => this.setState({ page: 'insights' }),
+      goMethod: () => this.setState({ page: 'methodology' }),
+      isOps: page === 'ops', isAux: page !== 'ops',
+      auxKicker: aux.kicker, auxTitle: aux.title, auxBody: aux.body
+    };
+  }
+}
+</script>
+</body>
+</html>

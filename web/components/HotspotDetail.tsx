@@ -4,10 +4,9 @@ import type { Hotspot, Place } from "@/lib/types";
 import { HourSpark, BarList } from "./Sparkline";
 
 function tier(impact: number) {
-  if (impact >= 60) return { label: "Critical", color: "var(--hot)" };
-  if (impact >= 40) return { label: "High", color: "var(--warm)" };
-  if (impact >= 22) return { label: "Moderate", color: "var(--amber)" };
-  return { label: "Watch", color: "var(--cool)" };
+  if (impact >= 60) return { label: "High impact", color: "var(--high)" };
+  if (impact >= 40) return { label: "Medium impact", color: "var(--med)" };
+  return { label: "Low impact", color: "var(--low)" };
 }
 
 export default function HotspotDetail({
@@ -30,33 +29,52 @@ export default function HotspotDetail({
 
   return (
     <>
-      <div className="detail-head">
-        <button className="back" onClick={onBack}>
-          ← Priority board
-        </button>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 12 }}>
-          <span className="impact-badge" style={{ color: t.color }}>
-            {h.impact.toFixed(1)}
-            <small>/ 100 impact</small>
-          </span>
-        </div>
-        <div style={{ marginTop: 8 }}>
-          <span className="chip" style={{ borderColor: t.color, color: t.color }}>
-            {t.label}
-          </span>
-          <span className="chip">Rank #{rank}</span>
-          <span className="chip">{h.station}</span>
-        </div>
-        {place?.locality && (
-          <div className="locality" title="Nearest place — Mappls partner data">
-            <span className="pin">◎</span> {place.locality}
-            <span className="locality-src">Mappls</span>
+      <div className="dt-top">
+        <div>
+          <div className="dt-kicker">
+            <span className="dot" style={{ background: t.color, boxShadow: `0 0 10px ${t.color}` }} />
+            <span className="lab" style={{ color: t.color }}>
+              {t.label} · Rank #{rank}
+            </span>
           </div>
-        )}
+          <div className="dt-name">{h.station}</div>
+        </div>
+        <button className="dt-x" onClick={onBack} aria-label="close">
+          ×
+        </button>
       </div>
 
-      <div className="section">
-        <div className="section-title">
+      {place?.locality && (
+        <div className="dt-locality" title="Nearest place — Mappls partner data">
+          <span className="pin">◎</span> {place.locality}
+          <span className="src">Mappls</span>
+        </div>
+      )}
+
+      <div className="dt-hero">
+        <span className="num" style={{ color: t.color }}>
+          {h.impact.toFixed(1)}
+        </span>
+        <span className="lab">Impact score</span>
+      </div>
+
+      <div className="dt-strip">
+        <div className="dt-cell">
+          <div className="v">{h.n.toLocaleString()}</div>
+          <div className="k">Violations</div>
+        </div>
+        <div className="dt-cell">
+          <div className="v">{h.severity.toFixed(2)}</div>
+          <div className="k">Severity</div>
+        </div>
+        <div className="dt-cell">
+          <div className="v">{h.persistence}%</div>
+          <div className="k">Days</div>
+        </div>
+      </div>
+
+      <div className="dt-block">
+        <div className="dt-block-t">
           Why it scores high
           <button
             className="info-dot"
@@ -67,52 +85,45 @@ export default function HotspotDetail({
             ⓘ
           </button>
         </div>
-        <div className="factor-grid">
-          <div className="factor">
-            <div className="fv">{h.n.toLocaleString()}</div>
-            <div className="fk">Violations · 5 mo</div>
-          </div>
-          <div className="factor">
-            <div className="fv">{h.severity.toFixed(2)}</div>
-            <div className="fk">Avg severity / 5</div>
-          </div>
-          <div className="factor">
-            <div className="fv">{h.persistence}%</div>
-            <div className="fk">Days active</div>
-          </div>
-          <div className="factor">
-            <div className="fv">{Math.round(h.junctionShare * 100)}%</div>
-            <div className="fk">Near junction</div>
+        <div className="bar-list">
+          <div className="bar-item">
+            <div className="top">
+              <span>Near junction</span>
+              <span>{Math.round(h.junctionShare * 100)}%</span>
+            </div>
+            <div className="bar-track">
+              <i style={{ width: `${Math.round(h.junctionShare * 100)}%` }} />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="section">
-        <div className="section-title">
+      <div className="dt-block">
+        <div className="dt-block-t">
           When it happens <span>peak {String(peakHour).padStart(2, "0")}:00</span>
         </div>
         <HourSpark hours={h.hours} />
       </div>
 
-      <div className="section">
-        <div className="section-title">Top violation types</div>
+      <div className="dt-block">
+        <div className="dt-block-t">Top violation types</div>
         <BarList items={h.violations} total={vTotal} />
       </div>
 
-      <div className="section">
-        <div className="section-title">Offending vehicles</div>
+      <div className="dt-block">
+        <div className="dt-block-t">Offending vehicles</div>
         <BarList items={h.vehicles} total={carTotal} />
       </div>
 
-      <div className="section">
-        <div className="section-title">Recommended action</div>
-        <p className="action">
-          Deploy enforcement at <b>{h.station}</b> beat around{" "}
-          <b>{String(peakHour).padStart(2, "0")}:00</b>. Target{" "}
-          <b>{h.violations[0][0].toLowerCase()}</b> by{" "}
-          <b>{h.vehicles[0][0].toLowerCase()}</b>s — the dominant pattern in this
-          180m cell. {h.junctionShare >= 0.6 ? "Junction-adjacent: clearing this cell directly relieves signal back-up." : ""}
-        </p>
+      <div className="dt-action">
+        Deploy enforcement at <b>{h.station}</b> beat around{" "}
+        <b className="accent">{String(peakHour).padStart(2, "0")}:00</b>. Target{" "}
+        <b>{h.violations[0][0].toLowerCase()}</b> by{" "}
+        <b>{h.vehicles[0][0].toLowerCase()}</b>s — the dominant pattern in this
+        180m cell.
+        {h.junctionShare >= 0.6
+          ? " Junction-adjacent: clearing this cell directly relieves signal back-up."
+          : ""}
       </div>
     </>
   );
